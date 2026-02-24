@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from datetime import datetime
 import os
 
@@ -16,7 +16,13 @@ app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
 
 @app.route("/", methods=["GET"])
 def home():
-    """Service information endpoint"""
+    """Serve the dashboard UI"""
+    return render_template("index.html")
+
+
+@app.route("/api", methods=["GET"])
+def api_info():
+    """Service information endpoint (JSON)"""
     return jsonify({
         "service": "Logistics Service",
         "status": "Running",
@@ -49,7 +55,8 @@ def create_order():
         return jsonify({"error": "Invalid order data - order_id is required"}), 400
 
     order_id = data["order_id"]
-
+
+
     if order_id in orders:
         return jsonify({"error": "Order already exists"}), 409
 
@@ -72,7 +79,8 @@ def get_order(order_id):
     """Get order details by ID"""
     if order_id not in orders:
         return jsonify({"error": "Order not found"}), 404
-
+
+
     return jsonify(orders[order_id]), 200
 
 
@@ -93,7 +101,8 @@ def create_shipment():
         }), 400
 
     shipment_id = data["shipment_id"]
-
+
+
     if shipment_id in shipments:
         return jsonify({"error": "Shipment already exists"}), 409
 
@@ -125,7 +134,8 @@ def get_shipment(shipment_id):
     """Get shipment status and tracking information"""
     if shipment_id not in shipments:
         return jsonify({"error": "Shipment not found"}), 404
-
+
+
     return jsonify(shipments[shipment_id]), 200
 
 
@@ -142,7 +152,8 @@ def update_shipment_location(shipment_id):
     shipment = shipments[shipment_id]
     shipment["current_location"] = data["location"]
     shipment["status"] = data.get("status", "in_transit")
-
+
+
     # Add to tracking history
     shipment["tracking_history"].append({
         "location": data["location"],
@@ -161,11 +172,13 @@ def update_shipment_location(shipment_id):
 def list_shipments():
     """List all shipments with optional status filter"""
     status_filter = request.args.get('status')
-
+
+
     filtered_shipments = shipments.values()
     if status_filter:
         filtered_shipments = [s for s in shipments.values() if s['status'] == status_filter]
-
+
+
     return jsonify({
         "count": len(filtered_shipments),
         "shipments": list(filtered_shipments)
@@ -198,7 +211,8 @@ def add_inventory_item():
         }), 400
 
     item_id = data["item_id"]
-
+
+
     if item_id in inventory:
         return jsonify({"error": "Item already exists"}), 409
 
@@ -229,7 +243,8 @@ def get_inventory_item(item_id):
     """Get specific inventory item"""
     if item_id not in inventory:
         return jsonify({"error": "Item not found"}), 404
-
+
+
     return jsonify(inventory[item_id]), 200
 
 
